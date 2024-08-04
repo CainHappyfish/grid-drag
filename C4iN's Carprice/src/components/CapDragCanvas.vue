@@ -3,6 +3,9 @@ import CapDragGridItem from "./CapDragGridItem.vue";
 import CapGridCard from "./CapGridCard.vue";
 import {computed, onMounted, ref} from "vue";
 import PreviewItem from "./CapPreviewItem.vue";
+import { usePreviewStore } from "../store/preview.ts"
+
+const previewStore = usePreviewStore();
 
 const props = defineProps<{
   row: number,
@@ -17,7 +20,6 @@ const ItemHeight = computed(() => CanvasHeight.value / props.row)
 const boardKey = ref(0) // 用于强制重新渲染画板的 key
 const itemKey = ref(0)  // 强制渲染元素
 
-const isPreviewed = ref(true)
 // console.log("itemX ",itemWidth.value, "itemY ", itemHeight.value)
 // console.log("Test boardX: ", CanvasWidth.value, "Test boardY: ", CanvasHeight.value)
 const handleSize = () => {
@@ -51,7 +53,7 @@ const PreviewData = ref({
 const onDragOver = (event: DragEvent) => {
   // const DragArea = document.querySelector(".grid-container")
   event.preventDefault();
-  isPreviewed.value = false
+  previewStore.isPreviewed = false
 
   PreviewData.value.X = ( (event.target as HTMLElement).offsetLeft - 25 ) / ItemWidth.value
   PreviewData.value.Y = ( (event.target as HTMLElement).offsetTop - 25 ) / ItemHeight.value
@@ -68,7 +70,7 @@ const onDragOver = (event: DragEvent) => {
 const onDrop = (event: DragEvent) => {
   event.preventDefault()
   // console.log("drop")
-  isPreviewed.value = true
+  previewStore.isPreviewed = true
 
   // console.log(event.dataTransfer)
   if (event.dataTransfer) {
@@ -84,16 +86,18 @@ const onDrop = (event: DragEvent) => {
 
 }
 
-const handleSizeChange = (width: number, height: number, resized: boolean) => {
-  if (resized) {
+const handleSizeChange = (width: number, height: number, figured: boolean) => {
+  if (figured) {
     PreviewData.value.Width = width;
     PreviewData.value.Height = height;
+    console.log(PreviewData)
     // console.log('卡片尺寸：', width, height);
   } else {
     PreviewData.value.Width = ItemWidth.value;
     PreviewData.value.Height = ItemHeight.value;
   }
 };
+
 </script>
 
 <template>
@@ -120,7 +124,7 @@ const handleSizeChange = (width: number, height: number, resized: boolean) => {
     />
     <PreviewItem :previewData="PreviewData"
                  :key="itemKey"
-                 v-if="!isPreviewed"/>
+                 v-if="!previewStore.isPreviewed"/>
 
   </div>
 </template>

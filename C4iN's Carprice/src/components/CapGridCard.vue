@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import {computed, ref} from "vue";
 import offLogo from "../assets/off.svg"
 import resizeLogo from "../assets/resize-bottom-right.svg"
+import { usePreviewStore } from "../store/preview.ts";
 
+const previewStore = usePreviewStore();
 const props = defineProps<{
   row: number,
   column: number,
@@ -11,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  size: [width: number, height: number, resized: boolean];
+  size: [width: number, height: number, figured: boolean];
 }>()
 
 const ItemWidth = computed(()=> props.canvasX / props.column)
@@ -23,10 +25,8 @@ const BackGroundColor = ref("")
 const BackGroundOpacity = ref(0.6)
 const LineColor = ref("")
 const Border = ref("")
-const ShiftX = ref(0)
-const ShiftY = ref(0)
-const DefaultWidth = computed(()=> ItemWidth.value - 10 - ShiftX.value)
-const DefaultHeight = computed(() => ItemHeight.value - 10 - ShiftY.value)
+const DefaultWidth = computed(()=> ItemWidth.value - 10 )
+const DefaultHeight = computed(() => ItemHeight.value - 10)
 // const CardWidth = computed(()=> ItemWidth.value - 10 - ShiftX.value)
 // const CardHeight = computed(() => ItemHeight.value - 10 - ShiftY.value)
 
@@ -34,10 +34,9 @@ const MinWidth = DefaultWidth.value
 const MinHeight = DefaultHeight.value
 
 const DefaultPosition = ref("default-position")
+const isResized = ref(false)
 
 
-const ResizeWidth = ref(MinWidth)
-const ResizeHeight = ref(MinHeight)
 const onDragStart = (event: DragEvent) => {
   // (event.target as HTMLElement).style.removeProperty("top")
   // (event.target as HTMLElement).classList.add("moving")
@@ -50,7 +49,7 @@ const onDragStart = (event: DragEvent) => {
     LineColor.value = "#1b80ac"
     BackGroundOpacity.value = 0.3
     // console.log("Current", ResizeWidth.value)
-    emit('size', ResizeWidth.value, ResizeHeight.value, true);
+    emit('size', FinWidth.value, FinHeight.value, true);
 
   }
 }
@@ -62,8 +61,6 @@ const onDragEnd = () => {
   BackGroundOpacity.value = 0.6
   LineColor.value = ""
   Border.value = ""
-  ShiftX.value = 0
-  ShiftY.value = 0
   DefaultPosition.value = ""
   // console.log("drag end")
 }
@@ -74,6 +71,15 @@ const handleRemove = (event: any) => {
   // console.log(CurrentCard)
   CurrentCard.remove()
 }
+
+const resizeCol = ref(1)
+const resizeRow = ref(1)
+
+const ResizeWidth = ref(MinWidth)
+const ResizeHeight = ref(MinHeight)
+
+const FinWidth = ref(ItemWidth.value)
+const FinHeight = ref(ItemHeight.value)
 
 
 const handleResize = (event: MouseEvent) => {
@@ -88,23 +94,42 @@ const handleResize = (event: MouseEvent) => {
       ResizeWidth.value = e.pageX - CurrentCard.getBoundingClientRect().x;
       ResizeHeight.value = e.pageY - (CurrentCard.getBoundingClientRect().y + window.scrollY);
       if (ResizeWidth.value > MinWidth) {
+        resizeCol.value = Math.ceil(ResizeWidth.value / (ItemWidth.value + 10))
         CurrentCard.style.width = ResizeWidth.value + 'px';
+        FinWidth.value = resizeCol.value * ItemWidth.value - 10
+        // console.log("col: ", resizeCol.value - 1, "FinWidth:", FinWidth.value)
       } else {
         CurrentCard.style.width = MinWidth + 'px';
+        FinWidth.value = MinWidth
       }
 
       if (ResizeHeight.value > MinHeight) {
+        resizeRow.value = Math.ceil(ResizeHeight.value / (ItemHeight.value + 10))
         CurrentCard.style.height = ResizeHeight.value + 'px';
+        FinHeight.value = resizeRow.value * ItemHeight.value - 10 
       } else {
         CurrentCard.style.height = MinHeight + 'px';
+        FinHeight.value = MinHeight;
       }
-      emit('size', ResizeWidth.value, ResizeHeight.value, true);
+      // console.log("FinX ", FinWidth.value, "FinY", FinHeight.value)
+      emit('size', FinWidth.value, FinHeight.value, true);
+      previewStore.isPreviewed = false
+
     }
   }
 
   const mouseUpHandler = () => {
     document.removeEventListener('mousemove', mouseMoveHandler);
     document.removeEventListener('mouseup', mouseUpHandler);
+    if (CurrentCard) {
+
+      CurrentCard.style.width = FinWidth.value + 'px'
+      CurrentCard.style.height = FinHeight.value + 'px'
+
+    }
+    emit('size', FinWidth.value, FinHeight.value, false);
+    previewStore.isPreviewed = true
+
   }
 
   if (event.target) {
@@ -113,11 +138,10 @@ const handleResize = (event: MouseEvent) => {
   }
 
 }
-const isResized = ref(false)
-const CardWidth = computed(()=> !isResized.value ? ItemWidth.value - 10 - ShiftX.value : ResizeWidth)
-const CardHeight = computed(() => !isResized.value ? ItemHeight.value - 10 - ShiftY.value : ResizeHeight)
+const CardWidth = computed(()=> !isResized.value ? DefaultWidth.value : FinWidth)
+const CardHeight = computed(() => !isResized.value ? DefaultHeight.value : FinHeight)
 
-
+console.log("CardX ", CardWidth.value, "CardY ", CardHeight.value)
 
 </script>
 

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import CapDragItem from "./CapDragGridItem.vue";
 import CapGragLeftSideBar from "./CapGragLeftSideBar.vue";
 import CapDragCanvas from "./CapDragCanvas.vue";
 import {ref} from "vue";

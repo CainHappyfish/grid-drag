@@ -21,6 +21,8 @@ const props = defineProps<{
   background: rgba(99, 178, 248, 0.8);
   border-radius: 10px;
   z-index: -1;
-  position: absolute
+  position: absolute;
+
+  transition: all 0.3s ease-in-out;
 }
 </style>
