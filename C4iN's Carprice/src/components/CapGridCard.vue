@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import offLogo from "../assets/off.svg"
 import resizeLogo from "../assets/resize-bottom-right.svg"
 import { usePreviewStore } from "../store/preview.ts";
@@ -10,10 +10,12 @@ const props = defineProps<{
   column: number,
   canvasX: number,
   canvasY: number,
+  isDroppable: boolean
 }>()
 
 const emit = defineEmits<{
   size: [width: number, height: number, figured: boolean];
+  position: [left: string, top: string]
 }>()
 
 const ItemWidth = computed(()=> props.canvasX / props.column)
@@ -37,6 +39,14 @@ const MinHeight = DefaultHeight.value
 const DefaultPosition = ref("default-position")
 const isResized = ref(false)
 
+const PositionX = ref("25px")
+const PositionY = ref("25px")
+
+const onMouseDown = (event: MouseEvent) => {
+  PositionX.value = (event.target as HTMLElement).offsetLeft + 'px'
+  PositionY.value = (event.target as HTMLElement).offsetTop + 'px'
+  // console.log(PositionX.value, PositionY.value)
+}
 
 const onDragStart = (event: DragEvent) => {
 
@@ -50,7 +60,7 @@ const onDragStart = (event: DragEvent) => {
     })
     LineColor.value = "#1b80ac"
     emit('size', FinWidth.value, FinHeight.value, true);
-
+    emit('position', PositionX.value, PositionY.value)
   }
 }
 
@@ -61,7 +71,9 @@ const onDragEnd = () => {
   BackGroundOpacity.value = 0.6
   LineColor.value = ""
   Border.value = ""
-  DefaultPosition.value = ""
+  if (props.isDroppable) {
+    DefaultPosition.value = ""
+  }
   previewStyle.value = ""
   // console.log("drag end")
 }
@@ -157,7 +169,7 @@ const handleResize = (event: MouseEvent) => {
 const CardWidth = computed(()=> !isResized.value ? DefaultWidth.value : FinWidth)
 const CardHeight = computed(() => !isResized.value ? DefaultHeight.value : FinHeight)
 
-console.log("CardX ", CardWidth.value, "CardY ", CardHeight.value)
+// console.log("CardX ", CardWidth.value, "CardY ", CardHeight.value)
 
 </script>
 
@@ -169,6 +181,7 @@ console.log("CardX ", CardWidth.value, "CardY ", CardHeight.value)
        id="grid-item"
        @dragstart="onDragStart"
        @dragend="onDragEnd"
+       @mousedown="onMouseDown"
   >
 
     <div class="remove-card" @click="handleRemove">

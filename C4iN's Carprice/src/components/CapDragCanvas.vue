@@ -20,6 +20,11 @@ const ItemHeight = computed(() => CanvasHeight.value / props.row)
 const boardKey = ref(0) // 用于强制重新渲染画板的 key
 const itemKey = ref(0)  // 强制渲染元素
 const isDroppable = ref(true)
+const CardPosition = ref({
+  X: "25px",
+  Y: "25px"
+})
+const CardPositionStyle = computed(() => `left: ${CardPosition.value.X}, top: ${CardPosition.value.Y} `)
 
 // console.log("itemX ",itemWidth.value, "itemY ", itemHeight.value)
 // console.log("Test boardX: ", CanvasWidth.value, "Test boardY: ", CanvasHeight.value)
@@ -38,8 +43,6 @@ onMounted(() => {
   // console.log("boardX: ", CanvasWidth.value, "boardY: ", CanvasHeight.value)
   itemKey.value++
 })
-
-
 // 在拖动同时将放入的计算网格位置
 
 const PreviewData = ref({
@@ -54,7 +57,12 @@ const PreviewData = ref({
 const onDragOver = (event: DragEvent) => {
   // const DragArea = document.querySelector(".grid-container")
   event.preventDefault();
+  const CardRight = computed(() => (PreviewData.value.Left + PreviewData.value.Width - 15))
+  const CardBottom = computed(() => (PreviewData.value.Top + PreviewData.value.Height - 15))
+  // console.log("X: ", CardRight.value, CanvasWidth.value)
+  // console.log("Y: ", CardBottom.value, CanvasHeight.value)
   previewStore.isPreviewed = false
+  isDroppable.value = !(CardRight.value > CanvasWidth.value || CardBottom.value > CanvasHeight.value);
 
   PreviewData.value.X = ( (event.target as HTMLElement).offsetLeft - 25 ) / ItemWidth.value
   PreviewData.value.Y = ( (event.target as HTMLElement).offsetTop - 25 ) / ItemHeight.value
@@ -62,15 +70,11 @@ const onDragOver = (event: DragEvent) => {
   PreviewData.value.Left = (event.target as HTMLElement).offsetLeft
   PreviewData.value.Top = (event.target as HTMLElement).offsetTop
 
-  const CardRight = computed(() => (PreviewData.value.Left + PreviewData.value.Width - 15))
-  const CardBottom = computed(() => (PreviewData.value.Top + PreviewData.value.Height - 15))
-  console.log("X: ", CardRight.value, CanvasWidth.value)
-  console.log("Y: ", CardBottom.value, CanvasHeight.value)
-  isDroppable.value = !(CardRight.value > CanvasWidth.value || CardBottom.value > CanvasHeight.value);
-
   // console.log("X: ", CurrentGrid.value.X, "Y: ",CurrentGrid.value.Y)
   // console.log(PreviewData)
 }
+
+
 
 const onDrop = (event: DragEvent) => {
   event.preventDefault()
@@ -84,9 +88,13 @@ const onDrop = (event: DragEvent) => {
     const GridItem = document.getElementById(id)
     const DragArea = document.querySelector(".grid-container")
     // console.log(GridItem, DragArea)
-    if (GridItem && DragArea) {
+    if (GridItem && DragArea && isDroppable.value) {
       (event.target as HTMLElement).appendChild(GridItem);
+    } else {
+      PreviewData.value.Left = parseInt(CardPosition.value.X)
+      PreviewData.value.Top = parseInt(CardPosition.value.Y)
     }
+
   }
 
 }
@@ -102,6 +110,12 @@ const handleSizeChange = (width: number, height: number, figured: boolean) => {
     PreviewData.value.Height = ItemHeight.value;
   }
 };
+
+const handlePosition = (left: string, top: string) => {
+  // console.log(left, top)
+  CardPosition.value.X = left
+  CardPosition.value.Y = top
+}
 
 </script>
 
@@ -124,8 +138,11 @@ const handleSizeChange = (width: number, height: number, figured: boolean) => {
                  :column="column"
                  :canvasX="CanvasWidth"
                  :canvasY="CanvasHeight"
+                 :isDroppable="isDroppable"
                  :key="itemKey"
+                 :style="CardPositionStyle"
                  @size="handleSizeChange"
+                 @position="handlePosition"
     />
 
     <PreviewItem :previewData="PreviewData"
