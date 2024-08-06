@@ -106,12 +106,18 @@ const handleResize = (event: MouseEvent) => {
     if (CurrentCard) {
       ResizeWidth.value = e.pageX - CurrentCard.getBoundingClientRect().x;
       ResizeHeight.value = e.pageY - (CurrentCard.getBoundingClientRect().y + window.scrollY);
-
+      // 这一大坨的if应该可以优化，但我懒
+      // 长宽超过最大值
       if (ResizeWidth.value > props.canvasX) {
         FinWidth.value = props.canvasX - 10
       }
       else if (ResizeHeight.value > props.canvasY) {
         FinHeight.value = props.canvasY - 10
+      }
+      // 缩放时超出容器
+      else if (CurrentCard.offsetLeft + ResizeWidth.value - 15> props.canvasX ||
+          CurrentCard.offsetTop + ResizeHeight.value - 10> props.canvasY) {
+          // 什么也不干
       }
       else {
         if (ResizeWidth.value > MinWidth) {
