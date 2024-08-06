@@ -4,6 +4,7 @@ import CapGridCard from "./CapGridCard.vue";
 import {computed, onMounted, ref} from "vue";
 import PreviewItem from "./CapPreviewItem.vue";
 import { usePreviewStore } from "../store/preview.ts"
+import { type ItemData } from "../composables/drag.ts";
 
 const previewStore = usePreviewStore();
 
@@ -44,6 +45,28 @@ onMounted(() => {
   itemKey.value++
 })
 // 在拖动同时将放入的计算网格位置
+
+const id = ref(0)
+
+const ItemData = ref<ItemData>({
+  id: "grid-item-" + (id.value++),
+  position: {
+    X: parseInt(CardPosition.value.X),
+    Y: parseInt(CardPosition.value.Y)
+  },
+  size: {
+    width: ItemWidth.value - 10,
+    height: ItemHeight.value - 10
+  },
+  content: {
+    title: "",
+    text: "",
+    url: "",
+    IMGurl: ""
+  }
+})
+
+console.log(ItemData.value)
 
 const PreviewData = ref({
   X: 0,

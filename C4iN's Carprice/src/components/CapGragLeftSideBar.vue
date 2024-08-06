@@ -2,13 +2,14 @@
 import {onMounted, ref} from "vue";
 import ClearLogo from "../assets/clear.svg"
 import Cross from "../assets/off.svg"
+import CapGridCard from "./CapGridCard.vue";
 
 const handleMenuClick = () => {
   const MenuButton = document.querySelector(".left-menu-button")
   const MenuLogo = document.querySelector(".menu-logo")
   const MenuContent = document.querySelectorAll(".menu-content")
   const MenuButtonChildren = document.querySelectorAll(".menu-logo span")
-  console.log(MenuButton)
+  // console.log(MenuButton)
   if (MenuButton && MenuLogo && MenuContent) {
     MenuButton.classList.toggle("menu-active")
     MenuLogo.classList.toggle("is-active")

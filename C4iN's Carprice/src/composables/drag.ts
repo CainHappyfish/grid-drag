@@ -23,14 +23,24 @@ export interface GridData {
  * */
 
 export interface ItemData {
+  id: string
+  /**
+   * 卡片位置
+   * */
   position: {
     X: number,
     Y: number,
   }
+  /**
+   * 卡片大小
+   * */
   size: {
     width: number,
     height: number,
   }
+  /**
+   * 卡片内容
+   * */
   content: {
     title: string,
     text: string,

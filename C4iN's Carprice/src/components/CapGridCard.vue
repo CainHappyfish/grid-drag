@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import {computed, ref} from "vue";
 import offLogo from "../assets/off.svg"
 import resizeLogo from "../assets/resize-bottom-right.svg"
 import { usePreviewStore } from "../store/preview.ts";
@@ -25,8 +25,10 @@ const ItemHeight = computed(() => props.canvasY / props.row)
 
 const BackGroundColor = ref("")
 const BackGroundOpacity = ref(0.6)
-const LineColor = ref("")
 const Border = ref("")
+/**
+ * 初始化卡片尺寸
+ * */
 const DefaultWidth = computed(()=> ItemWidth.value - 10 )
 const DefaultHeight = computed(() => ItemHeight.value - 10)
 const previewStyle = ref("")
@@ -49,16 +51,15 @@ const onMouseDown = (event: MouseEvent) => {
 }
 
 const onDragStart = (event: DragEvent) => {
-
+  const id = (event.target as HTMLElement).id
   if (event.dataTransfer) {
 
-    event.dataTransfer.setData("dragging", "grid-item")
+    event.dataTransfer.setData("dragging", id)
     // 需要延时，否则会出错
     setTimeout(() => {
       BackGroundOpacity.value = 0
       previewStyle.value = "translate(-99999px, -99999px)"
     })
-    LineColor.value = "#1b80ac"
     emit('size', FinWidth.value, FinHeight.value, true);
     emit('position', PositionX.value, PositionY.value)
   }
@@ -69,7 +70,6 @@ const onDragEnd = () => {
   BackGroundColor.value = ""
   BackGroundOpacity.value = 0.6
   BackGroundOpacity.value = 0.6
-  LineColor.value = ""
   Border.value = ""
   if (props.isDroppable) {
     DefaultPosition.value = ""
@@ -140,10 +140,6 @@ const handleResize = (event: MouseEvent) => {
         }
 
       }
-
-
-
-
 
       // console.log("FinX ", FinWidth.value, "FinY", FinHeight.value)
       emit('size', FinWidth.value, FinHeight.value, true);
