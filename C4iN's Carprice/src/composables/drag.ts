@@ -13,9 +13,11 @@ export interface PreviewData {
 /**
  * 网格信息
  * */
-export interface GridData {
-  Width: number,
-  Height: number,
+export interface CanvasData {
+  row: number,
+  column: number,
+  width: number,
+  height: number,
 }
 
 /**

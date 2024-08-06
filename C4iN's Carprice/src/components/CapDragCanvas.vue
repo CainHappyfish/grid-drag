@@ -4,7 +4,7 @@ import CapGridCard from "./CapGridCard.vue";
 import {computed, onMounted, ref} from "vue";
 import PreviewItem from "./CapPreviewItem.vue";
 import { usePreviewStore } from "../store/preview.ts"
-import { type ItemData } from "../composables/drag.ts";
+// import { type ItemData } from "../composables/drag.ts";
 
 const previewStore = usePreviewStore();
 
@@ -46,27 +46,7 @@ onMounted(() => {
 })
 // 在拖动同时将放入的计算网格位置
 
-const id = ref(0)
 
-const ItemData = ref<ItemData>({
-  id: "grid-item-" + (id.value++),
-  position: {
-    X: parseInt(CardPosition.value.X),
-    Y: parseInt(CardPosition.value.Y)
-  },
-  size: {
-    width: ItemWidth.value - 10,
-    height: ItemHeight.value - 10
-  },
-  content: {
-    title: "",
-    text: "",
-    url: "",
-    IMGurl: ""
-  }
-})
-
-console.log(ItemData.value)
 
 const PreviewData = ref({
   X: 0,
@@ -107,11 +87,9 @@ const onDrop = (event: DragEvent) => {
   // console.log(event.dataTransfer)
   if (event.dataTransfer) {
     const id = event.dataTransfer.getData("dragging")
-    // console.log("id: ", id)
+    console.log("id: ", id)
     const GridItem = document.getElementById(id)
-    const DragArea = document.querySelector(".grid-container")
-    // console.log(GridItem, DragArea)
-    if (GridItem && DragArea && isDroppable.value) {
+    if (GridItem && isDroppable.value) {
       (event.target as HTMLElement).appendChild(GridItem);
     } else {
       PreviewData.value.Left = parseInt(CardPosition.value.X)
@@ -140,6 +118,12 @@ const handlePosition = (left: string, top: string) => {
   CardPosition.value.Y = top
 }
 
+const Canvas = computed(() => ({
+  row: <number>props.row,
+  column: <number>props.column,
+  width: <number>CanvasWidth.value,
+  height: <number>CanvasHeight.value,
+}))
 </script>
 
 <template>
@@ -157,16 +141,25 @@ const handlePosition = (left: string, top: string) => {
       </div>
     </div>
 
-    <CapGridCard :row="row"
-                 :column="column"
-                 :canvasX="CanvasWidth"
-                 :canvasY="CanvasHeight"
-                 :isDroppable="isDroppable"
-                 :key="itemKey"
-                 :style="CardPositionStyle"
-                 @size="handleSizeChange"
-                 @position="handlePosition"
+    <CapGridCard
+      :isDroppable="isDroppable"
+      :key="itemKey"
+      :style="CardPositionStyle"
+      :gridData="Canvas"
+      @size="handleSizeChange"
+      @position="handlePosition"
     />
+
+    <CapGridCard
+      :isDroppable="isDroppable"
+      id="test"
+      :key="itemKey"
+      :style="CardPositionStyle"
+      :gridData="Canvas"
+      @size="handleSizeChange"
+      @position="handlePosition"
+    />
+
 
     <PreviewItem :previewData="PreviewData"
                  :droppable="isDroppable"

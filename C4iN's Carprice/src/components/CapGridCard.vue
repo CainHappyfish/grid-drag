@@ -3,13 +3,11 @@ import {computed, ref} from "vue";
 import offLogo from "../assets/off.svg"
 import resizeLogo from "../assets/resize-bottom-right.svg"
 import { usePreviewStore } from "../store/preview.ts";
+import {CanvasData, ItemData} from "../composables/drag.ts";
 
 const previewStore = usePreviewStore();
 const props = defineProps<{
-  row: number,
-  column: number,
-  canvasX: number,
-  canvasY: number,
+  gridData: CanvasData
   isDroppable: boolean
 }>()
 
@@ -18,10 +16,31 @@ const emit = defineEmits<{
   position: [left: string, top: string]
 }>()
 
-const ItemWidth = computed(()=> props.canvasX / props.column)
-const ItemHeight = computed(() => props.canvasY / props.row)
+const no = ref(0)
+const itemId = computed(() => "grid-item-" + no.value++)
 
+const ItemWidth = computed(()=> props.gridData.width / props.gridData.column)
+const ItemHeight = computed(() => props.gridData.height / props.gridData.row)
 
+const GridItemData = ref({
+  id: itemId.value,
+  position: {
+    X: 0,
+    Y: 0
+  },
+  size: {
+    width: ItemWidth.value - 10,
+    height: ItemHeight.value - 10
+  },
+  content: {
+    title: "",
+    text: "",
+    url: "",
+    IMGurl: ""
+  }
+})
+
+GridItemData.value.id = itemId.value
 
 const BackGroundColor = ref("")
 const BackGroundOpacity = ref(0.6)
@@ -108,15 +127,15 @@ const handleResize = (event: MouseEvent) => {
       ResizeHeight.value = e.pageY - (CurrentCard.getBoundingClientRect().y + window.scrollY);
       // 这一大坨的if应该可以优化，但我懒
       // 长宽超过最大值
-      if (ResizeWidth.value > props.canvasX) {
-        FinWidth.value = props.canvasX - 10
+      if (ResizeWidth.value > props.gridData.width) {
+        FinWidth.value = props.gridData.width - 10
       }
-      else if (ResizeHeight.value > props.canvasY) {
-        FinHeight.value = props.canvasY - 10
+      else if (ResizeHeight.value > props.gridData.height) {
+        FinHeight.value = props.gridData.height - 10
       }
       // 缩放时超出容器
-      else if (CurrentCard.offsetLeft + ResizeWidth.value - 15> props.canvasX ||
-          CurrentCard.offsetTop + ResizeHeight.value - 10> props.canvasY) {
+      else if (CurrentCard.offsetLeft + ResizeWidth.value - 15> props.gridData.width ||
+          CurrentCard.offsetTop + ResizeHeight.value - 10> props.gridData.height) {
           // 什么也不干
       }
       else {
@@ -180,7 +199,7 @@ const CardHeight = computed(() => !isResized.value ? DefaultHeight.value : FinHe
        :style="{width: CardWidth + 'px', height: CardHeight + 'px', background: BackGroundColor, opacity: BackGroundOpacity, transform: previewStyle}"
        :class="DefaultPosition"
        draggable="true"
-       id="grid-item"
+       :id="GridItemData.id"
        @dragstart="onDragStart"
        @dragend="onDragEnd"
        @mousedown="onMouseDown"
