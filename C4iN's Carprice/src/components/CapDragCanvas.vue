@@ -19,6 +19,7 @@ const ItemWidth = computed(()=> CanvasWidth.value / props.column)
 const ItemHeight = computed(() => CanvasHeight.value / props.row)
 const boardKey = ref(0) // 用于强制重新渲染画板的 key
 const itemKey = ref(0)  // 强制渲染元素
+const isDroppable = ref(true)
 
 // console.log("itemX ",itemWidth.value, "itemY ", itemHeight.value)
 // console.log("Test boardX: ", CanvasWidth.value, "Test boardY: ", CanvasHeight.value)
@@ -61,7 +62,11 @@ const onDragOver = (event: DragEvent) => {
   PreviewData.value.Left = (event.target as HTMLElement).offsetLeft
   PreviewData.value.Top = (event.target as HTMLElement).offsetTop
 
-
+  const CardRight = computed(() => (PreviewData.value.Left + PreviewData.value.Width - 15))
+  const CardBottom = computed(() => (PreviewData.value.Top + PreviewData.value.Height - 15))
+  console.log("X: ", CardRight.value, CanvasWidth.value)
+  console.log("Y: ", CardBottom.value, CanvasHeight.value)
+  isDroppable.value = !(CardRight.value > CanvasWidth.value || CardBottom.value > CanvasHeight.value);
 
   // console.log("X: ", CurrentGrid.value.X, "Y: ",CurrentGrid.value.Y)
   // console.log(PreviewData)
@@ -90,7 +95,7 @@ const handleSizeChange = (width: number, height: number, figured: boolean) => {
   if (figured) {
     PreviewData.value.Width = width;
     PreviewData.value.Height = height;
-    console.log(PreviewData)
+    // console.log(PreviewData)
     // console.log('卡片尺寸：', width, height);
   } else {
     PreviewData.value.Width = ItemWidth.value;
@@ -122,7 +127,9 @@ const handleSizeChange = (width: number, height: number, figured: boolean) => {
                  :key="itemKey"
                  @size="handleSizeChange"
     />
+
     <PreviewItem :previewData="PreviewData"
+                 :droppable="isDroppable"
                  :key="itemKey"
                  v-if="!previewStore.isPreviewed"/>
 

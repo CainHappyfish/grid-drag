@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { PreviewData } from "../composables/drag.ts";
+import {computed} from "vue";
 
 const props = defineProps<{
   previewData: PreviewData,
+  droppable: boolean
 }>()
 
+const UndroppableStyle = computed(() => props.droppable ? "" : "undroppable")
 
 // console.log(props.previewData)
 </script>
 
 <template>
-  <div class="preview-container" :style="{top: previewData.Top + 'px',left: previewData.Left+ 'px', width: previewData.Width - 5 + 'px', height: previewData.Height - 5 + 'px'}">
+  <div class="preview-container"
+       :class="UndroppableStyle"
+       :style="{top: previewData.Top + 'px',left: previewData.Left+ 'px', width: previewData.Width - 5 + 'px', height: previewData.Height - 5 + 'px'}">
 
   </div>
 </template>
@@ -24,5 +29,10 @@ const props = defineProps<{
   position: absolute;
 
   transition: all 0.3s ease-in-out;
+}
+
+.undroppable {
+  border: solid 3px rgb(237, 52, 52);
+  background: rgba(255, 113, 113, 0.8);
 }
 </style>

@@ -27,6 +27,7 @@ const LineColor = ref("")
 const Border = ref("")
 const DefaultWidth = computed(()=> ItemWidth.value - 10 )
 const DefaultHeight = computed(() => ItemHeight.value - 10)
+const previewStyle = ref("")
 // const CardWidth = computed(()=> ItemWidth.value - 10 - ShiftX.value)
 // const CardHeight = computed(() => ItemHeight.value - 10 - ShiftY.value)
 
@@ -38,17 +39,16 @@ const isResized = ref(false)
 
 
 const onDragStart = (event: DragEvent) => {
-  // (event.target as HTMLElement).style.removeProperty("top")
-  // (event.target as HTMLElement).classList.add("moving")
-  if (event.dataTransfer) {
-    // console.log("drag start")
-    event.dataTransfer.setData("dragging", "grid-item")
-    // console.log(event.dataTransfer)
-    // console.log(event.dataTransfer.getData("dragging"))
 
+  if (event.dataTransfer) {
+
+    event.dataTransfer.setData("dragging", "grid-item")
+    // 需要延时，否则会出错
+    setTimeout(() => {
+      BackGroundOpacity.value = 0
+      previewStyle.value = "translate(-99999px, -99999px)"
+    })
     LineColor.value = "#1b80ac"
-    BackGroundOpacity.value = 0.3
-    // console.log("Current", ResizeWidth.value)
     emit('size', FinWidth.value, FinHeight.value, true);
 
   }
@@ -62,6 +62,7 @@ const onDragEnd = () => {
   LineColor.value = ""
   Border.value = ""
   DefaultPosition.value = ""
+  previewStyle.value = ""
   // console.log("drag end")
 }
 
@@ -78,8 +79,8 @@ const resizeRow = ref(1)
 const ResizeWidth = ref(MinWidth)
 const ResizeHeight = ref(MinHeight)
 
-const FinWidth = ref(ItemWidth.value)
-const FinHeight = ref(ItemHeight.value)
+const FinWidth = ref(ItemWidth.value - 10)
+const FinHeight = ref(ItemHeight.value - 10)
 
 
 const handleResize = (event: MouseEvent) => {
@@ -93,24 +94,39 @@ const handleResize = (event: MouseEvent) => {
     if (CurrentCard) {
       ResizeWidth.value = e.pageX - CurrentCard.getBoundingClientRect().x;
       ResizeHeight.value = e.pageY - (CurrentCard.getBoundingClientRect().y + window.scrollY);
-      if (ResizeWidth.value > MinWidth) {
-        resizeCol.value = Math.ceil(ResizeWidth.value / (ItemWidth.value + 10))
-        CurrentCard.style.width = ResizeWidth.value + 'px';
-        FinWidth.value = resizeCol.value * ItemWidth.value - 10
-        // console.log("col: ", resizeCol.value - 1, "FinWidth:", FinWidth.value)
-      } else {
-        CurrentCard.style.width = MinWidth + 'px';
-        FinWidth.value = MinWidth
+
+      if (ResizeWidth.value > props.canvasX) {
+        FinWidth.value = props.canvasX - 10
+      }
+      else if (ResizeHeight.value > props.canvasY) {
+        FinHeight.value = props.canvasY - 10
+      }
+      else {
+        if (ResizeWidth.value > MinWidth) {
+          resizeCol.value = Math.ceil(ResizeWidth.value / (ItemWidth.value + 10))
+          CurrentCard.style.width = ResizeWidth.value + 'px';
+          FinWidth.value = resizeCol.value * ItemWidth.value - 10
+          // console.log("col: ", resizeCol.value - 1, "FinWidth:", FinWidth.value)
+        } else {
+          CurrentCard.style.width = MinWidth + 'px';
+          FinWidth.value = MinWidth
+        }
+
+        if (ResizeHeight.value > MinHeight) {
+          resizeRow.value = Math.ceil(ResizeHeight.value / (ItemHeight.value + 10))
+          CurrentCard.style.height = ResizeHeight.value + 'px';
+          FinHeight.value = resizeRow.value * ItemHeight.value - 10
+        } else {
+          CurrentCard.style.height = MinHeight + 'px';
+          FinHeight.value = MinHeight;
+        }
+
       }
 
-      if (ResizeHeight.value > MinHeight) {
-        resizeRow.value = Math.ceil(ResizeHeight.value / (ItemHeight.value + 10))
-        CurrentCard.style.height = ResizeHeight.value + 'px';
-        FinHeight.value = resizeRow.value * ItemHeight.value - 10 
-      } else {
-        CurrentCard.style.height = MinHeight + 'px';
-        FinHeight.value = MinHeight;
-      }
+
+
+
+
       // console.log("FinX ", FinWidth.value, "FinY", FinHeight.value)
       emit('size', FinWidth.value, FinHeight.value, true);
       previewStore.isPreviewed = false
@@ -147,7 +163,7 @@ console.log("CardX ", CardWidth.value, "CardY ", CardHeight.value)
 
 <template>
   <div class="item-container"
-       :style="{width: CardWidth + 'px', height: CardHeight + 'px', background: BackGroundColor, opacity: BackGroundOpacity}"
+       :style="{width: CardWidth + 'px', height: CardHeight + 'px', background: BackGroundColor, opacity: BackGroundOpacity, transform: previewStyle}"
        :class="DefaultPosition"
        draggable="true"
        id="grid-item"

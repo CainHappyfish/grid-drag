@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
 import ClearLogo from "../assets/clear.svg"
-
+import Cross from "../assets/off.svg"
 
 const handleMenuClick = () => {
   const MenuButton = document.querySelector(".left-menu-button")
@@ -39,7 +39,15 @@ const AddGridCard = () => {
           <span></span>
         </div>
         <div class="left-menu-content">
-          插入方块
+          <div class="param-form" id="CardParam">
+            <div class="input-container">
+              <input class="input-area" title="行">
+              <img :src="Cross" alt="" style="width: 20px; height:20px" />
+              <input class="input-area">
+            </div>
+            <button class="add-button">插入方块</button>
+          </div>
+
         </div>
       </div>
     </div>
@@ -155,4 +163,49 @@ const AddGridCard = () => {
 
   cursor: pointer;
 }
+
+.param-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.input-container {
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  & .input-area {
+    text-align: center;
+    width: 30px;
+    height: 30px;
+  }
+
+}
+
+.add-button {
+  border: solid 2px #b3bebe;
+  background: #303232;
+  border-radius: 5px;
+  width: 100px;
+  height: 30px;
+
+  &:hover {
+    background: #b3bebe;
+  }
+
+  &:active {
+    background: #b3bebe;
+
+  }
+}
+
+
+
+
+
+
+
 </style>
