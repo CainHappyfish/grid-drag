@@ -56,3 +56,33 @@ export interface ItemData {
     IMGurl: string
   }
 }
+
+/**
+ * 存储卡片信息
+ * */
+
+class DragCards <T extends ItemData>  {
+  cards = new Map<string, ItemData>();
+
+  set(key: string, data: T): void {
+    this.cards.set(key, data);
+  }
+
+  remove(key: string): void {
+    this.cards.delete(key);
+  }
+
+  get(key: string): ItemData | undefined {
+    return this.cards.get(key)
+  }
+}
+
+export const dragCards = new DragCards<ItemData>()
+
+
+
+
+
+
+
+

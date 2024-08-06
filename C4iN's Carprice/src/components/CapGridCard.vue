@@ -3,11 +3,12 @@ import {computed, ref} from "vue";
 import offLogo from "../assets/off.svg"
 import resizeLogo from "../assets/resize-bottom-right.svg"
 import { usePreviewStore } from "../store/preview.ts";
-import {CanvasData, ItemData} from "../composables/drag.ts";
+import {CanvasData, dragCards, ItemData} from "../composables/drag.ts";
 
 const previewStore = usePreviewStore();
 const props = defineProps<{
   gridData: CanvasData
+  cardData: ItemData
   isDroppable: boolean
 }>()
 
@@ -16,31 +17,6 @@ const emit = defineEmits<{
   position: [left: string, top: string]
 }>()
 
-const no = ref(0)
-const itemId = computed(() => "grid-item-" + no.value++)
-
-const ItemWidth = computed(()=> props.gridData.width / props.gridData.column)
-const ItemHeight = computed(() => props.gridData.height / props.gridData.row)
-
-const GridItemData = ref({
-  id: itemId.value,
-  position: {
-    X: 0,
-    Y: 0
-  },
-  size: {
-    width: ItemWidth.value - 10,
-    height: ItemHeight.value - 10
-  },
-  content: {
-    title: "",
-    text: "",
-    url: "",
-    IMGurl: ""
-  }
-})
-
-GridItemData.value.id = itemId.value
 
 const BackGroundColor = ref("")
 const BackGroundOpacity = ref(0.6)
@@ -48,14 +24,12 @@ const Border = ref("")
 /**
  * 初始化卡片尺寸
  * */
-const DefaultWidth = computed(()=> ItemWidth.value - 10 )
-const DefaultHeight = computed(() => ItemHeight.value - 10)
+const DefaultWidth = computed(()=> props.cardData.size.width )
+const DefaultHeight = computed(() => props.cardData.size.height )
 const previewStyle = ref("")
-// const CardWidth = computed(()=> ItemWidth.value - 10 - ShiftX.value)
-// const CardHeight = computed(() => ItemHeight.value - 10 - ShiftY.value)
 
-const MinWidth = DefaultWidth.value
-const MinHeight = DefaultHeight.value
+const MinWidth = props.cardData.size.width
+const MinHeight = props.cardData.size.height
 
 const DefaultPosition = ref("default-position")
 const isResized = ref(false)
@@ -66,7 +40,9 @@ const PositionY = ref("25px")
 const onMouseDown = (event: MouseEvent) => {
   PositionX.value = (event.target as HTMLElement).offsetLeft + 'px'
   PositionY.value = (event.target as HTMLElement).offsetTop + 'px'
-  // console.log(PositionX.value, PositionY.value)
+
+  dragCards.set(props.cardData.id, props.cardData)
+  console.log(dragCards.get(props.cardData.id))
 }
 
 const onDragStart = (event: DragEvent) => {
@@ -102,6 +78,7 @@ const handleRemove = (event: any) => {
   const CurrentCard = event.currentTarget.parentElement
   // console.log(CurrentCard)
   CurrentCard.remove()
+  dragCards.remove((event.currentTarget as HTMLElement).id)
 }
 
 const resizeCol = ref(1)
@@ -110,14 +87,14 @@ const resizeRow = ref(1)
 const ResizeWidth = ref(MinWidth)
 const ResizeHeight = ref(MinHeight)
 
-const FinWidth = ref(ItemWidth.value - 10)
-const FinHeight = ref(ItemHeight.value - 10)
+const FinWidth = ref(props.cardData.size.width)
+const FinHeight = ref(props.cardData.size.height)
 
 
 const handleResize = (event: MouseEvent) => {
-  isResized.value = true
   event.stopPropagation()
   event.preventDefault()
+  isResized.value = true
   const CurrentCard = (event.currentTarget as HTMLElement).parentElement
   // console.log("currentX: ",event.pageX, " currentY: ",event.pageY)
 
@@ -128,10 +105,10 @@ const handleResize = (event: MouseEvent) => {
       // 这一大坨的if应该可以优化，但我懒
       // 长宽超过最大值
       if (ResizeWidth.value > props.gridData.width) {
-        FinWidth.value = props.gridData.width - 10
+        FinWidth.value = props.gridData.width
       }
       else if (ResizeHeight.value > props.gridData.height) {
-        FinHeight.value = props.gridData.height - 10
+        FinHeight.value = props.gridData.height
       }
       // 缩放时超出容器
       else if (CurrentCard.offsetLeft + ResizeWidth.value - 15> props.gridData.width ||
@@ -140,9 +117,9 @@ const handleResize = (event: MouseEvent) => {
       }
       else {
         if (ResizeWidth.value > MinWidth) {
-          resizeCol.value = Math.ceil(ResizeWidth.value / (ItemWidth.value + 10))
+          resizeCol.value = Math.ceil(ResizeWidth.value / (props.cardData.size.width + 10))
           CurrentCard.style.width = ResizeWidth.value + 'px';
-          FinWidth.value = resizeCol.value * ItemWidth.value - 10
+          FinWidth.value = resizeCol.value * (props.cardData.size.width) + 10 * (resizeCol.value - 1)
           // console.log("col: ", resizeCol.value - 1, "FinWidth:", FinWidth.value)
         } else {
           CurrentCard.style.width = MinWidth + 'px';
@@ -150,9 +127,9 @@ const handleResize = (event: MouseEvent) => {
         }
 
         if (ResizeHeight.value > MinHeight) {
-          resizeRow.value = Math.ceil(ResizeHeight.value / (ItemHeight.value + 10))
+          resizeRow.value = Math.ceil(ResizeHeight.value / (props.cardData.size.height + 10))
           CurrentCard.style.height = ResizeHeight.value + 'px';
-          FinHeight.value = resizeRow.value * ItemHeight.value - 10
+          FinHeight.value = resizeRow.value * (props.cardData.size.height) + 10 * (resizeRow.value - 1)
         } else {
           CurrentCard.style.height = MinHeight + 'px';
           FinHeight.value = MinHeight;
@@ -160,7 +137,6 @@ const handleResize = (event: MouseEvent) => {
 
       }
 
-      // console.log("FinX ", FinWidth.value, "FinY", FinHeight.value)
       emit('size', FinWidth.value, FinHeight.value, true);
       previewStore.isPreviewed = false
 
@@ -190,7 +166,6 @@ const handleResize = (event: MouseEvent) => {
 const CardWidth = computed(()=> !isResized.value ? DefaultWidth.value : FinWidth)
 const CardHeight = computed(() => !isResized.value ? DefaultHeight.value : FinHeight)
 
-// console.log("CardX ", CardWidth.value, "CardY ", CardHeight.value)
 
 </script>
 
@@ -199,7 +174,7 @@ const CardHeight = computed(() => !isResized.value ? DefaultHeight.value : FinHe
        :style="{width: CardWidth + 'px', height: CardHeight + 'px', background: BackGroundColor, opacity: BackGroundOpacity, transform: previewStyle}"
        :class="DefaultPosition"
        draggable="true"
-       :id="GridItemData.id"
+       :id="cardData.id"
        @dragstart="onDragStart"
        @dragend="onDragEnd"
        @mousedown="onMouseDown"
@@ -223,12 +198,7 @@ const CardHeight = computed(() => !isResized.value ? DefaultHeight.value : FinHe
   opacity: 0.6;
   position: absolute;
 
-/*  width: v-bind(ResizeWidth);
-  height: v-bind(ResizeHeight);*/
-
   cursor: pointer;
-
-  /*transition: all 0.1s ease;*/
 
 
 }

@@ -72,7 +72,6 @@ const onDragOver = (event: DragEvent) => {
 
   PreviewData.value.Left = (event.target as HTMLElement).offsetLeft
   PreviewData.value.Top = (event.target as HTMLElement).offsetTop
-
   // console.log("X: ", CurrentGrid.value.X, "Y: ",CurrentGrid.value.Y)
   // console.log(PreviewData)
 }
@@ -118,11 +117,31 @@ const handlePosition = (left: string, top: string) => {
   CardPosition.value.Y = top
 }
 
+const cardID = ref(0)
+
 const Canvas = computed(() => ({
   row: <number>props.row,
   column: <number>props.column,
   width: <number>CanvasWidth.value,
   height: <number>CanvasHeight.value,
+}))
+
+const CardData = computed(() => ({
+  id: <string>"item-" + cardID.value,
+  position: {
+    X: <number>25,
+    Y: <number>25
+  },
+  size: {
+    width: <number>CanvasWidth.value / props.column - 10,
+    height: <number>CanvasHeight.value / props.row - 10
+  },
+  content: {
+    title: <string>"",
+    text: <string>"",
+    url: <string>"",
+    IMGurl: <string>""
+  }
 }))
 </script>
 
@@ -145,20 +164,21 @@ const Canvas = computed(() => ({
       :isDroppable="isDroppable"
       :key="itemKey"
       :style="CardPositionStyle"
+      :cardData="CardData"
       :gridData="Canvas"
       @size="handleSizeChange"
       @position="handlePosition"
     />
 
-    <CapGridCard
-      :isDroppable="isDroppable"
-      id="test"
-      :key="itemKey"
-      :style="CardPositionStyle"
-      :gridData="Canvas"
-      @size="handleSizeChange"
-      @position="handlePosition"
-    />
+<!--    <CapGridCard-->
+<!--      :isDroppable="isDroppable"-->
+<!--      id="test"-->
+<!--      :key="itemKey"-->
+<!--      :style="CardPositionStyle"-->
+<!--      :gridData="Canvas"-->
+<!--      @size="handleSizeChange"-->
+<!--      @position="handlePosition"-->
+<!--    />-->
 
 
     <PreviewItem :previewData="PreviewData"
