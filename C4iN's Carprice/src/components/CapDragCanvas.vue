@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import CapDragGridItem from "./CapDragGridItem.vue";
 import CapGridCard from "./CapGridCard.vue";
-import {computed, onMounted, ref} from "vue";
+import { computed, onMounted, ref } from "vue";
 import PreviewItem from "./CapPreviewItem.vue";
 import { usePreviewStore } from "../store/preview.ts"
-// import { type ItemData } from "../composables/drag.ts";
+// import { ItemData } from "../composables/drag.ts";
 
 const previewStore = usePreviewStore();
+
 
 const props = defineProps<{
   row: number,
@@ -86,10 +87,12 @@ const onDrop = (event: DragEvent) => {
   // console.log(event.dataTransfer)
   if (event.dataTransfer) {
     const id = event.dataTransfer.getData("dragging")
-    console.log("id: ", id)
+    // console.log("id: ", id)
     const GridItem = document.getElementById(id)
     if (GridItem && isDroppable.value) {
       (event.target as HTMLElement).appendChild(GridItem);
+      CardPosition.value.X = (event.target as HTMLElement).offsetLeft + 'px'
+      CardPosition.value.Y = (event.target as HTMLElement).offsetTop + 'px'
     } else {
       PreviewData.value.Left = parseInt(CardPosition.value.X)
       PreviewData.value.Top = parseInt(CardPosition.value.Y)
@@ -115,6 +118,8 @@ const handlePosition = (left: string, top: string) => {
   // console.log(left, top)
   CardPosition.value.X = left
   CardPosition.value.Y = top
+  PreviewData.value.Left = parseInt(left)
+  PreviewData.value.Top = parseInt(top)
 }
 
 const cardID = ref(0)
@@ -129,8 +134,8 @@ const Canvas = computed(() => ({
 const CardData = computed(() => ({
   id: <string>"item-" + cardID.value,
   position: {
-    X: <number>25,
-    Y: <number>25
+    X: <number>parseInt(CardPosition.value.X),
+    Y: <number>parseInt(CardPosition.value.Y),
   },
   size: {
     width: <number>CanvasWidth.value / props.column - 10,
@@ -143,6 +148,17 @@ const CardData = computed(() => ({
     IMGurl: <string>""
   }
 }))
+
+previewStore.DragItemData.push(CardData.value)
+previewStore.DragItemData.push(CardData.value)
+// DragItemData.value.push(CardData.value)
+// DragItemData.value.push(CardData.value)
+
+let index: number = 1
+previewStore.DragItemData.forEach((item) => {
+  item.id = "item-"+ index++
+  console.log(item)
+})
 </script>
 
 <template>
@@ -161,6 +177,8 @@ const CardData = computed(() => ({
     </div>
 
     <CapGridCard
+      v-for="(item, index) in previewStore.DragItemData"
+      :id="index+1"
       :isDroppable="isDroppable"
       :key="itemKey"
       :style="CardPositionStyle"

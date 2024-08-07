@@ -1,8 +1,28 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import ClearLogo from "../assets/clear.svg"
 import Cross from "../assets/off.svg"
-import CapGridCard from "./CapGridCard.vue";
+// import CapGridCard from "./CapGridCard.vue";
+import {usePreviewStore } from "../store/preview.ts";
+
+const previewStore = usePreviewStore();
+const CardData = computed(() => ({
+  id: <string>"",
+  position: {
+    X: <number>1,
+    Y: <number>1,
+  },
+  size: {
+    width: 0,
+    height: 0
+  },
+  content: {
+    title: <string>"",
+    text: <string>"",
+    url: <string>"",
+    IMGurl: <string>""
+  }
+}))
 
 const handleMenuClick = () => {
   const MenuButton = document.querySelector(".left-menu-button")
@@ -25,9 +45,12 @@ const handleMenuClick = () => {
 }
 
 const AddGridCard = () => {
-
+  previewStore.DragItemData.push(CardData.value)
 }
 
+const CleanGrid = () => {
+  previewStore.DragItemData = []
+}
 </script>
 
 <template>
@@ -46,7 +69,7 @@ const AddGridCard = () => {
               <img :src="Cross" alt="" style="width: 20px; height:20px" />
               <input class="input-area">
             </div>
-            <button class="add-button">插入方块</button>
+            <button class="add-button" @click="AddGridCard">插入方块</button>
           </div>
 
         </div>
@@ -54,7 +77,7 @@ const AddGridCard = () => {
     </div>
 
     <div class="clear-button">
-      <img :src="ClearLogo" alt="clear" style="height: 50px; width: 50px"/>
+      <img :src="ClearLogo" alt="clear" style="height: 50px; width: 50px" @click="CleanGrid"/>
     </div>
   </div>
 </template>

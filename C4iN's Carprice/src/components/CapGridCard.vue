@@ -17,6 +17,7 @@ const emit = defineEmits<{
   position: [left: string, top: string]
 }>()
 
+const dragData = props.cardData
 
 const BackGroundColor = ref("")
 const BackGroundOpacity = ref(0.6)
@@ -24,12 +25,12 @@ const Border = ref("")
 /**
  * 初始化卡片尺寸
  * */
-const DefaultWidth = computed(()=> props.cardData.size.width )
-const DefaultHeight = computed(() => props.cardData.size.height )
+const DefaultWidth = computed(()=> props.gridData.width / props.gridData.column - 10)
+const DefaultHeight = computed(() => props.gridData.height / props.gridData.row - 10)
 const previewStyle = ref("")
 
-const MinWidth = props.cardData.size.width
-const MinHeight = props.cardData.size.height
+const MinWidth = dragData.size.width
+const MinHeight = dragData.size.height
 
 const DefaultPosition = ref("default-position")
 const isResized = ref(false)
@@ -41,8 +42,8 @@ const onMouseDown = (event: MouseEvent) => {
   PositionX.value = (event.target as HTMLElement).offsetLeft + 'px'
   PositionY.value = (event.target as HTMLElement).offsetTop + 'px'
 
-  dragCards.set(props.cardData.id, props.cardData)
-  console.log(dragCards.get(props.cardData.id))
+  dragCards.set(dragData.id, dragData)
+  // console.log(dragCards.get(dragData.id))
 }
 
 const onDragStart = (event: DragEvent) => {
@@ -81,90 +82,100 @@ const handleRemove = (event: any) => {
   dragCards.remove((event.currentTarget as HTMLElement).id)
 }
 
-const resizeCol = ref(1)
-const resizeRow = ref(1)
+  const resizeCol = ref(1)
+  const resizeRow = ref(1)
 
-const ResizeWidth = ref(MinWidth)
-const ResizeHeight = ref(MinHeight)
+  const ResizeWidth = ref(MinWidth)
+  const ResizeHeight = ref(MinHeight)
 
-const FinWidth = ref(props.cardData.size.width)
-const FinHeight = ref(props.cardData.size.height)
+  const FinWidth = ref(dragData.size.width)
+  const FinHeight = ref(dragData.size.height)
 
 
-const handleResize = (event: MouseEvent) => {
-  event.stopPropagation()
-  event.preventDefault()
-  isResized.value = true
-  const CurrentCard = (event.currentTarget as HTMLElement).parentElement
-  // console.log("currentX: ",event.pageX, " currentY: ",event.pageY)
-
-  const mouseMoveHandler = (e: MouseEvent) => {
+  const handleResize = (event: MouseEvent) => {
+    event.stopPropagation()
+    event.preventDefault()
+    isResized.value = true
+    const CurrentCard = (event.currentTarget as HTMLElement).parentElement
+    // console.log("currentX: ",event.pageX, " currentY: ",event.pageY)
     if (CurrentCard) {
-      ResizeWidth.value = e.pageX - CurrentCard.getBoundingClientRect().x;
-      ResizeHeight.value = e.pageY - (CurrentCard.getBoundingClientRect().y + window.scrollY);
-      // 这一大坨的if应该可以优化，但我懒
-      // 长宽超过最大值
-      if (ResizeWidth.value > props.gridData.width) {
-        FinWidth.value = props.gridData.width
-      }
-      else if (ResizeHeight.value > props.gridData.height) {
-        FinHeight.value = props.gridData.height
-      }
-      // 缩放时超出容器
-      else if (CurrentCard.offsetLeft + ResizeWidth.value - 15> props.gridData.width ||
-          CurrentCard.offsetTop + ResizeHeight.value - 10> props.gridData.height) {
-          // 什么也不干
-      }
-      else {
-        if (ResizeWidth.value > MinWidth) {
-          resizeCol.value = Math.ceil(ResizeWidth.value / (props.cardData.size.width + 10))
-          CurrentCard.style.width = ResizeWidth.value + 'px';
-          FinWidth.value = resizeCol.value * (props.cardData.size.width) + 10 * (resizeCol.value - 1)
-          // console.log("col: ", resizeCol.value - 1, "FinWidth:", FinWidth.value)
-        } else {
-          CurrentCard.style.width = MinWidth + 'px';
-          FinWidth.value = MinWidth
+      PositionX.value = CurrentCard.offsetLeft + 'px'
+      PositionY.value = CurrentCard.offsetTop + 'px'
+      emit('position', PositionX.value, PositionY.value)
+    }
+    const mouseMoveHandler = (e: MouseEvent) => {
+      if (CurrentCard) {
+        ResizeWidth.value = e.pageX - CurrentCard.getBoundingClientRect().x;
+        ResizeHeight.value = e.pageY - (CurrentCard.getBoundingClientRect().y + window.scrollY);
+        // 这一大坨的if应该可以优化，但我懒
+        // 长宽超过最大值
+        if (ResizeWidth.value > props.gridData.width) {
+          FinWidth.value = props.gridData.width
+        }
+        else if (ResizeHeight.value > props.gridData.height) {
+          FinHeight.value = props.gridData.height
+        }
+        // 缩放时超出容器
+        else if (CurrentCard.offsetLeft + ResizeWidth.value - 15> props.gridData.width ||
+            CurrentCard.offsetTop + ResizeHeight.value - 10> props.gridData.height) {
+            // 什么也不干
+        }
+        else {
+          if (ResizeWidth.value > MinWidth) {
+            resizeCol.value = Math.ceil(ResizeWidth.value / (DefaultWidth.value + 10))
+            CurrentCard.style.width = ResizeWidth.value + 'px';
+            FinWidth.value = resizeCol.value * (DefaultWidth.value) + 10 * (resizeCol.value - 1)
+            // console.log("col: ", resizeCol.value - 1, "FinWidth:", FinWidth.value)
+          } else {
+            CurrentCard.style.width = MinWidth + 'px';
+            FinWidth.value = MinWidth
+          }
+
+          if (ResizeHeight.value > MinHeight) {
+            resizeRow.value = Math.ceil(ResizeHeight.value / (DefaultHeight.value + 10))
+            CurrentCard.style.height = ResizeHeight.value + 'px';
+            FinHeight.value = resizeRow.value * (DefaultHeight.value) + 10 * (resizeRow.value - 1)
+          } else {
+            CurrentCard.style.height = MinHeight + 'px';
+            FinHeight.value = MinHeight;
+          }
+
         }
 
-        if (ResizeHeight.value > MinHeight) {
-          resizeRow.value = Math.ceil(ResizeHeight.value / (props.cardData.size.height + 10))
-          CurrentCard.style.height = ResizeHeight.value + 'px';
-          FinHeight.value = resizeRow.value * (props.cardData.size.height) + 10 * (resizeRow.value - 1)
-        } else {
-          CurrentCard.style.height = MinHeight + 'px';
-          FinHeight.value = MinHeight;
-        }
+        dragData.size.width = FinWidth.value
+        dragData.size.height = FinHeight.value
+        dragCards.set(dragData.id, dragData)
+        emit('size', FinWidth.value, FinHeight.value, true);
+        previewStore.isPreviewed = false
 
       }
+    }
 
-      emit('size', FinWidth.value, FinHeight.value, true);
-      previewStore.isPreviewed = false
+    const mouseUpHandler = () => {
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', mouseUpHandler);
+      if (CurrentCard) {
+
+        CurrentCard.style.width = FinWidth.value + 'px'
+        CurrentCard.style.height = FinHeight.value + 'px'
+
+      }
+      console.log(PositionX.value, PositionY.value)
+      emit('size', FinWidth.value, FinHeight.value, false);
+      emit('position', PositionX.value, PositionY.value)
+
+      previewStore.isPreviewed = true
 
     }
-  }
 
-  const mouseUpHandler = () => {
-    document.removeEventListener('mousemove', mouseMoveHandler);
-    document.removeEventListener('mouseup', mouseUpHandler);
-    if (CurrentCard) {
-
-      CurrentCard.style.width = FinWidth.value + 'px'
-      CurrentCard.style.height = FinHeight.value + 'px'
-
+    if (event.target) {
+      document.addEventListener('mousemove', mouseMoveHandler);
+      document.addEventListener('mouseup', mouseUpHandler);
     }
-    emit('size', FinWidth.value, FinHeight.value, false);
-    previewStore.isPreviewed = true
 
   }
-
-  if (event.target) {
-    document.addEventListener('mousemove', mouseMoveHandler);
-    document.addEventListener('mouseup', mouseUpHandler);
-  }
-
-}
-const CardWidth = computed(()=> !isResized.value ? DefaultWidth.value : FinWidth)
-const CardHeight = computed(() => !isResized.value ? DefaultHeight.value : FinHeight)
+  const CardWidth = computed(()=> !isResized.value ? DefaultWidth.value : FinWidth)
+  const CardHeight = computed(() => !isResized.value ? DefaultHeight.value : FinHeight)
 
 
 </script>
