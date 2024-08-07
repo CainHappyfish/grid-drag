@@ -121,6 +121,7 @@ const handleRemove = (event: any) => {
       emit('position', PositionX.value, PositionY.value)
     }
     const mouseMoveHandler = (e: MouseEvent) => {
+      const CurrentElement = event.target as HTMLElement
       if (CurrentCard) {
         ResizeWidth.value = e.pageX - CurrentCard.getBoundingClientRect().x;
         ResizeHeight.value = e.pageY - (CurrentCard.getBoundingClientRect().y + window.scrollY);
@@ -207,7 +208,6 @@ const handleRemove = (event: any) => {
        @dragend="onDragEnd"
        @mousedown="onMouseDown"
   >
-
     <div class="remove-card" @click="handleRemove">
       <img :src="offLogo" alt="off" class="off-button" />
     </div>

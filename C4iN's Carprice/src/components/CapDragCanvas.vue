@@ -4,6 +4,7 @@ import CapGridCard from "./CapGridCard.vue";
 import { computed, onMounted, ref } from "vue";
 import PreviewItem from "./CapPreviewItem.vue";
 import { usePreviewStore } from "../store/preview.ts"
+import { dragCards } from "../composables/drag.ts";
 // import { ItemData } from "../composables/drag.ts";
 
 const previewStore = usePreviewStore();
@@ -67,7 +68,10 @@ const onDragOver = (event: DragEvent) => {
   // console.log("Y: ", CardBottom.value, CanvasHeight.value)
   previewStore.isPreviewed = false
   isDroppable.value = !(CardRight.value > CanvasWidth.value || CardBottom.value > CanvasHeight.value);
-
+  const CurrentElement = event.target as HTMLElement
+  if (CurrentElement.classList.contains('item-container')) {
+    isDroppable.value = false
+  }
   PreviewData.value.X = ( (event.target as HTMLElement).offsetLeft - 25 ) / ItemWidth.value
   PreviewData.value.Y = ( (event.target as HTMLElement).offsetTop - 25 ) / ItemHeight.value
 
@@ -75,6 +79,7 @@ const onDragOver = (event: DragEvent) => {
   PreviewData.value.Top = (event.target as HTMLElement).offsetTop
   // console.log("X: ", CurrentGrid.value.X, "Y: ",CurrentGrid.value.Y)
   // console.log(PreviewData)
+
 }
 
 
@@ -151,6 +156,7 @@ previewStore.DragItemData.push(CardData.value)
 previewStore.DragItemData.push(CardData.value)
 // DragItemData.value.push(CardData.value)
 // DragItemData.value.push(CardData.value)
+// console.log(dragCards)
 
 let index: number = 1
 previewStore.DragItemData.forEach((item) => {
