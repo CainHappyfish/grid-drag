@@ -19,6 +19,7 @@ const emit = defineEmits<{
 
 const dragData = props.cardData
 
+
 const BackGroundColor = ref("")
 const BackGroundOpacity = ref(0.6)
 const Border = ref("")
@@ -38,12 +39,24 @@ const isResized = ref(false)
 const PositionX = ref("25px")
 const PositionY = ref("25px")
 
+/**
+ * 拖曳临时数据
+ * */
+
+
 const onMouseDown = (event: MouseEvent) => {
   PositionX.value = (event.target as HTMLElement).offsetLeft + 'px'
   PositionY.value = (event.target as HTMLElement).offsetTop + 'px'
 
-  dragCards.set(dragData.id, dragData)
-  // console.log(dragCards.get(dragData.id))
+  const currentCard = event.target as HTMLElement
+  dragData.id = currentCard.id
+  dragData.size.width = parseInt(currentCard.style.width)
+  dragData.size.height = parseInt(currentCard.style.height)
+  dragData.position.X = (event.target as HTMLElement).offsetLeft
+  dragData.position.Y = (event.target as HTMLElement).offsetTop
+
+  dragCards.set(currentCard.id, dragData)
+  console.log(dragCards)
 }
 
 const onDragStart = (event: DragEvent) => {
@@ -61,14 +74,18 @@ const onDragStart = (event: DragEvent) => {
   }
 }
 
-const onDragEnd = () => {
+const onDragEnd = (event: DragEvent) => {
   // console.log("drag end")
+  const currentCard = event.target as HTMLElement
   BackGroundColor.value = ""
   BackGroundOpacity.value = 0.6
   BackGroundOpacity.value = 0.6
   Border.value = ""
   if (props.isDroppable) {
     DefaultPosition.value = ""
+    dragData.position.X = currentCard.offsetLeft
+    dragData.position.Y = currentCard.offsetTop
+    dragCards.set(currentCard.id, dragData)
   }
   previewStyle.value = ""
   // console.log("drag end")

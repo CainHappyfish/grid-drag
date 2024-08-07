@@ -122,8 +122,6 @@ const handlePosition = (left: string, top: string) => {
   PreviewData.value.Top = parseInt(top)
 }
 
-const cardID = ref(0)
-
 const Canvas = computed(() => ({
   row: <number>props.row,
   column: <number>props.column,
@@ -132,7 +130,7 @@ const Canvas = computed(() => ({
 }))
 
 const CardData = computed(() => ({
-  id: <string>"item-" + cardID.value,
+  id: <string>"card-item",
   position: {
     X: <number>parseInt(CardPosition.value.X),
     Y: <number>parseInt(CardPosition.value.Y),
