@@ -15,10 +15,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   size: [width: number, height: number, figured: boolean];
   position: [left: string, top: string]
+  resized: [resizable: boolean]
 }>()
 
 const dragData = props.cardData
-
+const resizable = ref(true)
 
 const BackGroundColor = ref("")
 const BackGroundOpacity = ref(0.6)
@@ -113,6 +114,9 @@ const handleRemove = (event: any) => {
     event.stopPropagation()
     event.preventDefault()
     isResized.value = true
+    resizable.value = true
+    console.log(resizable.value)
+
     const CurrentCard = (event.currentTarget as HTMLElement).parentElement
     // console.log("currentX: ",event.pageX, " currentY: ",event.pageY)
     if (CurrentCard) {
@@ -121,17 +125,17 @@ const handleRemove = (event: any) => {
       emit('position', PositionX.value, PositionY.value)
     }
     const mouseMoveHandler = (e: MouseEvent) => {
-      const CurrentElement = event.target as HTMLElement
       if (CurrentCard) {
         ResizeWidth.value = e.pageX - CurrentCard.getBoundingClientRect().x;
         ResizeHeight.value = e.pageY - (CurrentCard.getBoundingClientRect().y + window.scrollY);
         // 这一大坨的if应该可以优化，但我懒
         // 长宽超过最大值
+
         if (ResizeWidth.value > props.gridData.width) {
-          FinWidth.value = props.gridData.width
+          FinWidth.value = props.gridData.width - 10
         }
         else if (ResizeHeight.value > props.gridData.height) {
-          FinHeight.value = props.gridData.height
+          FinHeight.value = props.gridData.height - 10
         }
         // 缩放时超出容器
         else if (CurrentCard.offsetLeft + ResizeWidth.value - 15> props.gridData.width ||
@@ -139,6 +143,25 @@ const handleRemove = (event: any) => {
             // 什么也不干
         }
         else {
+          // console.log(CurrentElement)
+          // if (CurrentElement.classList.contains('item-container')) {
+          //   resizable.value = !(CurrentCard.getBoundingClientRect().right > CurrentElement.getBoundingClientRect().left)
+          //   // console.log(resizable.value)
+          // }
+          const cards = document.querySelectorAll('.item-container')
+          if (cards) {
+            cards.forEach((e) => {
+              if (e.id !== CurrentCard.id) {
+                resizable.value = !((CurrentCard.getBoundingClientRect().right > e.getBoundingClientRect().left ||
+                     CurrentCard.getBoundingClientRect().top > e.getBoundingClientRect().bottom
+                    ) &&
+                    (CurrentCard.getBoundingClientRect().left < e.getBoundingClientRect().right ||
+                     CurrentCard.getBoundingClientRect().bottom < e.getBoundingClientRect().top
+                    ))
+                console.log(resizable.value)
+              }
+            })
+          }
           if (ResizeWidth.value > MinWidth) {
             resizeCol.value = Math.ceil(ResizeWidth.value / (DefaultWidth.value + 10))
             CurrentCard.style.width = ResizeWidth.value + 'px';
@@ -163,9 +186,16 @@ const handleRemove = (event: any) => {
         dragData.size.width = FinWidth.value
         dragData.size.height = FinHeight.value
         dragCards.set(dragData.id, dragData)
-        emit('size', FinWidth.value, FinHeight.value, true);
         previewStore.isPreviewed = false
-
+        emit('size', FinWidth.value, FinHeight.value, true);
+        if (!resizable.value) {
+          console.log("not resized")
+          FinWidth.value = props.cardData.size.width
+          FinHeight.value = props.cardData.size.height
+          emit('resized', resizable.value)
+        } else {
+          emit('resized', resizable.value)
+        }
       }
     }
 
@@ -178,7 +208,7 @@ const handleRemove = (event: any) => {
         CurrentCard.style.height = FinHeight.value + 'px'
 
       }
-      console.log(PositionX.value, PositionY.value)
+      // console.log(PositionX.value, PositionY.value)
       emit('size', FinWidth.value, FinHeight.value, false);
       emit('position', PositionX.value, PositionY.value)
 

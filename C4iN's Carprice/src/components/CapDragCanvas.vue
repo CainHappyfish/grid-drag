@@ -67,22 +67,23 @@ const onDragOver = (event: DragEvent) => {
   // console.log("X: ", CardRight.value, CanvasWidth.value)
   // console.log("Y: ", CardBottom.value, CanvasHeight.value)
   previewStore.isPreviewed = false
-  isDroppable.value = !(CardRight.value > CanvasWidth.value || CardBottom.value > CanvasHeight.value);
   const CurrentElement = event.target as HTMLElement
-  if (CurrentElement.classList.contains('item-container')) {
-    isDroppable.value = false
-  }
-  PreviewData.value.X = ( (event.target as HTMLElement).offsetLeft - 25 ) / ItemWidth.value
-  PreviewData.value.Y = ( (event.target as HTMLElement).offsetTop - 25 ) / ItemHeight.value
+  isDroppable.value = !(CardRight.value > CanvasWidth.value ||
+      CardBottom.value > CanvasHeight.value ||
+      CurrentElement.classList.contains('item-container')
+  )
+  PreviewData.value.X = ( CurrentElement.offsetLeft - 25 ) / ItemWidth.value
+  PreviewData.value.Y = ( CurrentElement.offsetTop - 25 ) / ItemHeight.value
 
   PreviewData.value.Left = (event.target as HTMLElement).offsetLeft
   PreviewData.value.Top = (event.target as HTMLElement).offsetTop
+
+  PreviewData.value.Width = parseInt(CurrentElement.style.width)
+  PreviewData.value.Height = parseInt(CurrentElement.style.height)
   // console.log("X: ", CurrentGrid.value.X, "Y: ",CurrentGrid.value.Y)
   // console.log(PreviewData)
 
 }
-
-
 
 const onDrop = (event: DragEvent) => {
   event.preventDefault()
@@ -118,6 +119,10 @@ const handleSizeChange = (width: number, height: number, figured: boolean) => {
     PreviewData.value.Height = ItemHeight.value;
   }
 };
+
+const handleResizable = (resized: boolean) => {
+  isDroppable.value = resized
+}
 
 const handlePosition = (left: string, top: string) => {
   // console.log(left, top)
@@ -190,6 +195,7 @@ previewStore.DragItemData.forEach((item) => {
       :gridData="Canvas"
       @size="handleSizeChange"
       @position="handlePosition"
+      @resized="handleResizable"
     />
 
 <!--    <CapGridCard-->
