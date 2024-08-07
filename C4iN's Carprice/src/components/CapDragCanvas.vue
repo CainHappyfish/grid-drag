@@ -67,21 +67,24 @@ const onDragOver = (event: DragEvent) => {
   // console.log("X: ", CardRight.value, CanvasWidth.value)
   // console.log("Y: ", CardBottom.value, CanvasHeight.value)
   previewStore.isPreviewed = false
+
   const CurrentElement = event.target as HTMLElement
   isDroppable.value = !(CardRight.value > CanvasWidth.value ||
       CardBottom.value > CanvasHeight.value ||
       CurrentElement.classList.contains('item-container')
   )
-  PreviewData.value.X = ( CurrentElement.offsetLeft - 25 ) / ItemWidth.value
-  PreviewData.value.Y = ( CurrentElement.offsetTop - 25 ) / ItemHeight.value
+  // PreviewData.value.X = Math.ceil((CurrentElement.offsetLeft - 25) / ItemWidth.value)
+  // PreviewData.value.Y = Math.ceil((CurrentElement.offsetTop - 25) / ItemHeight.value)
 
-  PreviewData.value.Left = (event.target as HTMLElement).offsetLeft
-  PreviewData.value.Top = (event.target as HTMLElement).offsetTop
+  const board: HTMLElement | null = document.querySelector(".drag-board")
+  if (board) {
+    PreviewData.value.X = Math.floor((event.clientX - board.getBoundingClientRect().x - 25) / ItemWidth.value)
+    PreviewData.value.Y = Math.floor((event.clientY - board.getBoundingClientRect().y - 25) / ItemHeight.value)
+  }
 
-  PreviewData.value.Width = parseInt(CurrentElement.style.width)
-  PreviewData.value.Height = parseInt(CurrentElement.style.height)
-  // console.log("X: ", CurrentGrid.value.X, "Y: ",CurrentGrid.value.Y)
-  // console.log(PreviewData)
+  PreviewData.value.Left = PreviewData.value.X * (ItemWidth.value) + 25
+  PreviewData.value.Top = PreviewData.value.Y * (ItemHeight.value) + 25
+
 
 }
 
@@ -113,7 +116,7 @@ const handleSizeChange = (width: number, height: number, figured: boolean) => {
     PreviewData.value.Width = width;
     PreviewData.value.Height = height;
     // console.log(PreviewData)
-    // console.log('卡片尺寸：', width, height);
+    console.log('卡片尺寸：', width, height);
   } else {
     PreviewData.value.Width = ItemWidth.value;
     PreviewData.value.Height = ItemHeight.value;

@@ -40,10 +40,6 @@ const isResized = ref(false)
 const PositionX = ref("25px")
 const PositionY = ref("25px")
 
-/**
- * 拖曳临时数据
- * */
-
 
 const onMouseDown = (event: MouseEvent) => {
   PositionX.value = (event.target as HTMLElement).offsetLeft + 'px'
@@ -57,7 +53,7 @@ const onMouseDown = (event: MouseEvent) => {
   dragData.position.Y = (event.target as HTMLElement).offsetTop
 
   dragCards.set(currentCard.id, dragData)
-  console.log(dragCards)
+  // console.log(dragCards)
 }
 
 const onDragStart = (event: DragEvent) => {
@@ -143,22 +139,16 @@ const handleRemove = (event: any) => {
             // 什么也不干
         }
         else {
-          // console.log(CurrentElement)
-          // if (CurrentElement.classList.contains('item-container')) {
-          //   resizable.value = !(CurrentCard.getBoundingClientRect().right > CurrentElement.getBoundingClientRect().left)
-          //   // console.log(resizable.value)
-          // }
           const cards = document.querySelectorAll('.item-container')
           if (cards) {
             cards.forEach((e) => {
               if (e.id !== CurrentCard.id) {
-                resizable.value = !((CurrentCard.getBoundingClientRect().right > e.getBoundingClientRect().left ||
-                     CurrentCard.getBoundingClientRect().top > e.getBoundingClientRect().bottom
+                resizable.value = !(( (CurrentCard.getBoundingClientRect().right >= e.getBoundingClientRect().left ) &&
+                     CurrentCard.getBoundingClientRect().bottom >= e.getBoundingClientRect().top
                     ) &&
-                    (CurrentCard.getBoundingClientRect().left < e.getBoundingClientRect().right ||
-                     CurrentCard.getBoundingClientRect().bottom < e.getBoundingClientRect().top
+                    (CurrentCard.getBoundingClientRect().left <= e.getBoundingClientRect().left &&
+                     CurrentCard.getBoundingClientRect().top <= e.getBoundingClientRect().top
                     ))
-                console.log(resizable.value)
               }
             })
           }
